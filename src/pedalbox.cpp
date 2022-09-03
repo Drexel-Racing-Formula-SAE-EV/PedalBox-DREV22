@@ -1,5 +1,7 @@
 #include "poten.h"
 
+#include <Arduino.h>
+
 #define LEFT_POTEN_PIN A1
 #define RIGHT_POTEN_PIN A2
 
