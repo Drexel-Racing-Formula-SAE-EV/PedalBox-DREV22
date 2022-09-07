@@ -1,9 +1,13 @@
 #include "poten.h"
 
+#include <drev_can.h>
+
 #include <Arduino.h>
 
 #define LEFT_POTEN_PIN A1
 #define RIGHT_POTEN_PIN A2
+
+drev_can::can_node x{0};
 
 const struct poten_range left_poten_range = {
     .lower_bound = 367,
