@@ -9,5 +9,6 @@ int poten::read() {
 }
 
 int poten::read_percent() {
-    return map(read(), m_range.lower_bound, m_range.upper_bound, 0, 100);
+    // Maps from 100 to 0 so no throttle input is "0%"
+    return map(read(), m_range.lower_bound, m_range.upper_bound, 100, 0);
 }
