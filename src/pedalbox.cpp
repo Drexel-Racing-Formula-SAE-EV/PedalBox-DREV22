@@ -10,13 +10,13 @@
 drev_can::can_node x{0};
 
 const struct poten_range left_poten_range = {
-    .lower_bound = 367,
-    .upper_bound = 1023,
+    .lower_bound = LPOT_MIN,
+    .upper_bound = LPOT_MAX,
 };
 
 const struct poten_range right_poten_range = {
-    .lower_bound = 104,
-    .upper_bound = 1023,
+    .lower_bound = RPOT_MIN,
+    .upper_bound = RPOT_MAX,
 };
 
 poten left_poten = poten{LEFT_POTEN_PIN, left_poten_range};
