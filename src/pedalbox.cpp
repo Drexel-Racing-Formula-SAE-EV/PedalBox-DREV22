@@ -1,13 +1,21 @@
 #include "poten.h"
 
+#include <SPI.h>
+
 #include <drev_can.h>
 
 #include <Arduino.h>
 
+#define FREQ    100
+
 #define LEFT_POTEN_PIN A1
 #define RIGHT_POTEN_PIN A2
 
-drev_can::can_node x{0};
+#define RxID 0x201  // CAN recieving addr for motor controller
+#define TORQUE_CMD 0x90 
+
+unsigned long last_write = millis();
+drev_can::can_node canBus{RxID};
 
 const struct poten_range left_poten_range = {
     .lower_bound = LPOT_MIN,
@@ -29,9 +37,22 @@ void setup() {
 }
 
 void loop() {
-    char buf[64];
-    snprintf(buf, sizeof(buf), "[%d, %d] [%d, %d]\n", left_poten.read(),
-             right_poten.read(), left_poten.read_percent(),
-             right_poten.read_percent());
-    Serial.println(buf);
+    //short trq;
+
+    if (millis() - last_write > (1000/FREQ)){
+        //trq = (left_poten.read_percent() + right_poten.read_percent()) / 2;
+
+        drev_can::can_message message;
+        message.data[0] = TORQUE_CMD;
+        message.data[1] = 0xFC;
+        message.data[2] = 0x3F;
+        message.data[3] = 0x00;
+        message.data[4] = 0x00;
+        message.data[5] = 0x00;
+        message.data[6] = 0x00;
+        message.data[7] = 0x00;
+
+        Serial.println(canBus.send(message));
+        last_write = millis();
+    }
 }
