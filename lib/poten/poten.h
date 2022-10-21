@@ -36,7 +36,7 @@ public:
      *
      * @return Linearly mapped value from valid range to 0-100
      */
-    int read_percent();
+    short read_percent();
 
 private:
     int m_pin;

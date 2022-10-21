@@ -8,7 +8,7 @@ int poten::read() {
     return analogRead(m_pin);
 }
 
-int poten::read_percent() {
+short poten::read_percent() {
     // Maps from 100 to 0 so no throttle input is "0%"
     return map(read(), m_range.lower_bound, m_range.upper_bound, 100, 0);
 }
