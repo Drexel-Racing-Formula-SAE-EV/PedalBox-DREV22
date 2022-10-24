@@ -6,7 +6,15 @@
 
 #include <Arduino.h>
 
-#define FREQ    100
+// Frequency of reading and sending torque data
+#define FREQ    100 
+
+// Define period as 10ms if frequency isn't defined above
+#ifndef FREQ 
+#define PERIOD 10 
+#else
+#define PERIOD  ( 1000 / FREQ ) 
+#endif
 
 #define LEFT_POTEN_PIN A1
 #define RIGHT_POTEN_PIN A2
@@ -16,6 +24,7 @@
 
 unsigned long last_write = millis();
 drev_can::can_node canBus{RxID};
+uint8_t testData[] = {TORQUE_CMD, 0xFC, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 const struct poten_range left_poten_range = {
     .lower_bound = LPOT_MIN,
@@ -36,21 +45,17 @@ void setup() {
     pinMode(RIGHT_POTEN_PIN, INPUT);
 }
 
+void set_msg_data(drev_can::can_message msgObj, uint8_t *newMsg) {
+    for (int i=0; i<8; i++){
+        msgObj.data[i] = newMsg[i];
+    }
+}
+
 void loop() {
-    //short trq;
-
-    if (millis() - last_write > (1000/FREQ)){
+    if (millis() - last_write > PERIOD){
         //trq = (left_poten.read_percent() + right_poten.read_percent()) / 2;
-
         drev_can::can_message message;
-        message.data[0] = TORQUE_CMD;
-        message.data[1] = 0xFC;
-        message.data[2] = 0x3F;
-        message.data[3] = 0x00;
-        message.data[4] = 0x00;
-        message.data[5] = 0x00;
-        message.data[6] = 0x00;
-        message.data[7] = 0x00;
+        set_msg_data(message, testData);
 
         Serial.println(canBus.send(message));
         last_write = millis();
