@@ -22,10 +22,6 @@
 #define RxID 0x201  // CAN recieving addr for motor controller
 #define TORQUE_CMD 0x90 
 
-unsigned long last_write = millis();
-drev_can::can_node canBus(RxID);
-uint8_t testData[] = {TORQUE_CMD, 0xFC, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00};
-
 const struct poten_range left_poten_range = {
     .lower_bound = LPOT_MIN,
     .upper_bound = LPOT_MAX,
@@ -36,8 +32,28 @@ const struct poten_range right_poten_range = {
     .upper_bound = RPOT_MAX,
 };
 
+unsigned long last_write = millis();
+
 poten left_poten = poten{LEFT_POTEN_PIN, left_poten_range};
 poten right_poten = poten{RIGHT_POTEN_PIN, right_poten_range};
+
+uint8_t testData[] = {TORQUE_CMD, 0xFC, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+drev_can::can_node canBus(RxID);
+
+drev_can::can_message canMSG {
+    .id=RxID,
+    .length=3,
+};
+
+
+
+void set_msg_data(drev_can::can_message msgObj, uint8_t *newData) {
+    for (int i=0; i<8; i++){
+        msgObj.data[i] = newData[i];
+    }
+}
+
 
 void setup() {
     Serial.begin(9600);
@@ -45,23 +61,13 @@ void setup() {
     pinMode(RIGHT_POTEN_PIN, INPUT);
 }
 
-void set_msg_data(drev_can::can_message msgObj, uint8_t *newMsg) {
-    for (int i=0; i<8; i++){
-        msgObj.data[i] = newMsg[i];
-    }
-}
-
 void loop() {
     if (millis() - last_write > PERIOD){
         //trq = (left_poten.read_percent() + right_poten.read_percent()) / 2;
-        drev_can::can_message message{
-            .id=RxID,
-            .length=3,
-        };
 
-        set_msg_data(message, testData);
+        set_msg_data(canMSG, testData);
 
-        Serial.println(canBus.send(message));
+        Serial.println(canBus.send(canMSG));
         last_write = millis();
     }
 }
