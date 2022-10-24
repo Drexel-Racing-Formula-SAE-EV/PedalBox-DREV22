@@ -55,6 +55,7 @@ void loop() {
     if (millis() - last_write > PERIOD){
         //trq = (left_poten.read_percent() + right_poten.read_percent()) / 2;
         drev_can::can_message message{
+            .id=RxID,
             .length=3,
         };
 
