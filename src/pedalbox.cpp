@@ -23,7 +23,7 @@
 #define TORQUE_CMD 0x90 
 
 unsigned long last_write = millis();
-drev_can::can_node canBus{RxID};
+drev_can::can_node canBus(RxID);
 uint8_t testData[] = {TORQUE_CMD, 0xFC, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 const struct poten_range left_poten_range = {
@@ -54,7 +54,10 @@ void set_msg_data(drev_can::can_message msgObj, uint8_t *newMsg) {
 void loop() {
     if (millis() - last_write > PERIOD){
         //trq = (left_poten.read_percent() + right_poten.read_percent()) / 2;
-        drev_can::can_message message;
+        drev_can::can_message message{
+            .length=3,
+        };
+
         set_msg_data(message, testData);
 
         Serial.println(canBus.send(message));
