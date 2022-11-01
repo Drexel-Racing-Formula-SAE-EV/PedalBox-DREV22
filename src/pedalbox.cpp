@@ -59,7 +59,6 @@ void setup(void)
   last_write = millis();
   CANbus.begin();
   delay(1000);
-  Serial.println("\nCAN Message:");
 }
 
 // -------------------------------------------------------------
@@ -67,7 +66,7 @@ void loop(void)
 {
   if ( (millis() - last_write) > PERIOD){
     last_write = millis();
-    digitalWrite(LED, 0);
+    digitalWrite(LED, HIGH);
     pot = left_poten.read_percent();
     trq_hex = to_trq_hex(pot);
     msg.buf[1] = trq_hex%256;
@@ -76,12 +75,15 @@ void loop(void)
     // send 6 at a time to force tx buffering
     int ret = CANbus.write(msg);
     if (DEBUG){
+      Serial.println("\nCAN Message:");
       Serial.println("ret: " + String(ret));
       Serial.println("timeout: " + String(msg.timeout));
       Serial.print("0x"); Serial.println(trq_hex, HEX);
       Serial.print(pot); Serial.println("%");
-      Serial.println("");
+    }
+    if (PERIOD > 50){
+      delay(50);
     }
   }
-  digitalWrite(LED, 1);
+  digitalWrite(LED, LOW);
 }
