@@ -7,6 +7,8 @@
 
 brake::brake(int pin_left, int pin_right, int light_pin)
 
+
+
 int::brake get_pressure() {
     return (analogRead(pin_left) + analogRead(pin_right)) / 2;
 }
@@ -16,8 +18,10 @@ int::brake pressure_percentage(){
 }
 
 void::brake brake_light(){
-    if get_pressure(){
+    if get_pressure() > 0 {
         digitalWrite(light_pin, HIGH);
+    } else {
+        digitalWrite(light_pin, LOW);
     }
 }
 
