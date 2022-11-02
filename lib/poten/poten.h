@@ -1,11 +1,6 @@
 #ifndef LINEAR_POTENIOMETER_H
 #define LINEAR_POTENIOMETER_H
 
-#define LPOT_MIN    84      // Left Potentiometer Lower Bound
-#define LPOT_MAX    1023    // Left Potentiometer Upper Bound
-#define RPOT_MIN    359     // Right Potentiometer Lower Bound
-#define RPOT_MAX    1023    // Right Potentiometer Upper Bound
-
 /**
  * @brief Range of reachable values from poteniometer
  */
