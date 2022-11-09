@@ -12,23 +12,26 @@
 #include <FlexCAN.h>
 #include <poten.h>
 
+#define DEBUG 1
+
 #define LEFT_POTEN_PIN A1
 #define RIGHT_POTEN_PIN A2
+#define LED 13
 
-#define LPOT_MIN    72      // Left Potentiometer Lower Bound
+// TODO: Calibrate Potentiometers
+#define LPOT_MIN    320     // Left Potentiometer Lower Bound
 #define LPOT_MAX    1023    // Left Potentiometer Upper Bound
-#define RPOT_MIN    359     // Right Potentiometer Lower Bound
+#define RPOT_MIN    545     // Right Potentiometer Lower Bound
 #define RPOT_MAX    1023    // Right Potentiometer Upper Bound
 
 #define PERIOD 250
-#define LED 13
-#define DEBUG 0
+#define THRESH 5
 
 FlexCAN CANbus(500000);
 static CAN_message_t msg;
 uint16_t trq_hex;
 
-int Lpot, Rpot;
+int Lpot, Rpot, PotFinal, LRaw, RRaw;
 unsigned long last_write;
 
 const struct poten_range left_poten_range = {
@@ -73,25 +76,35 @@ void loop(void)
     last_write = millis();
     digitalWrite(LED, HIGH);
     Lpot = left_poten.read_percent();
+    LRaw = left_poten.read();
     Rpot = right_poten.read_percent();
-    trq_hex = to_trq_hex(Lpot);
+    RRaw = right_poten.read();
+
+    PotFinal = (Lpot+Rpot)/2;
+    // If the Potentiometers are significantly different, default to LPot
+    if (abs(Lpot - Rpot) > THRESH){
+      PotFinal=Lpot;
+    }
+
+    PotFinal = PotFinal>100? 100 : PotFinal;
+
+    trq_hex = to_trq_hex(PotFinal);
     msg.buf[1] = trq_hex%256;
     msg.buf[2] = trq_hex/256;
 
-    // For calibrating pots
-    //Serial.print("Left: "); Serial.println(left_poten.read());
-    //Serial.print("Right: "); Serial.println(right_poten.read());
-    // send 6 at a time to force tx buffering
-    int ret = CANbus.write(msg);
+   int ret = CANbus.write(msg);
     if (DEBUG){
-      Serial.println("\nCAN Message:");
-      Serial.println("ret: " + String(ret));
-      Serial.println("timeout: " + String(msg.timeout));
+      Serial.println("\nPotentiometer Data:");
+      Serial.printf("Left: [%d, %d\%]\n", LRaw, Lpot);
+      Serial.printf("Right: [%d, %d\%]\n", RRaw, Rpot);
+      Serial.println("CAN Message:");
+      Serial.printf("ret: %d\n", ret);
+      Serial.printf("timeout: %d\n", msg.timeout);
+      Serial.printf("PotFinal: %d\n", PotFinal);
       Serial.print("0x"); Serial.println(trq_hex, HEX);
-      Serial.print(Lpot); Serial.println("%");
     }
     if (PERIOD > 50){
-      delay(50);
+      delay(25);
     }
   }
   digitalWrite(LED, LOW);
