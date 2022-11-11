@@ -35,77 +35,80 @@ int Lpot, Rpot, PotFinal, LRaw, RRaw;
 unsigned long last_write;
 
 const struct poten_range left_poten_range = {
-  .lower_bound = LPOT_MIN,
-  .upper_bound = LPOT_MAX,
+    .lower_bound = LPOT_MIN,
+    .upper_bound = LPOT_MAX,
 };
 
 const struct poten_range right_poten_range = {
-  .lower_bound = RPOT_MIN,
-  .upper_bound = RPOT_MAX,
+    .lower_bound = RPOT_MIN,
+    .upper_bound = RPOT_MAX,
 };
 
 poten left_poten = poten{LEFT_POTEN_PIN, left_poten_range};
 poten right_poten = poten{RIGHT_POTEN_PIN, right_poten_range};
 
 uint16_t to_trq_hex(short percent){
-  return map(percent, 0, 100, 0x0000, 0x5555);
+    return map(percent, 0, 100, 0x0000, 0x5555);
 }
 
 // -------------------------------------------------------------
 void setup(void)
 {
-  msg.timeout = 500;
-  msg.len = 3;
-  msg.id = 0x201;
-  msg.ext = 0x0;
-  msg.buf[0] = 0x90;
+    msg.timeout = 500;
+    msg.len = 3;
+    msg.id = 0x201;
+    msg.ext = 0x0;
+    msg.buf[0] = 0x90;
 
-  pinMode(LEFT_POTEN_PIN, INPUT); // POT 1
-  pinMode(RIGHT_POTEN_PIN, INPUT); // POT 2
-  pinMode(LED, OUTPUT);
+    pinMode(LEFT_POTEN_PIN, INPUT); // POT 1
+    pinMode(RIGHT_POTEN_PIN, INPUT); // POT 2
+    pinMode(LED, OUTPUT);
   
-  last_write = millis();
-  CANbus.begin();
-  delay(1000);
+    last_write = millis();
+    CANbus.begin();
+    delay(1000);
 }
 
 // -------------------------------------------------------------
 void loop(void)
 {
-  if ( (millis() - last_write) > PERIOD){
-    last_write = millis();
-    digitalWrite(LED, HIGH);
-    Lpot = left_poten.read_percent();
-    LRaw = left_poten.read();
-    Rpot = right_poten.read_percent();
-    RRaw = right_poten.read();
+    if ( (millis() - last_write) > PERIOD)
+    {
+        last_write = millis();
+        digitalWrite(LED, HIGH);
+        Lpot = left_poten.read_percent();
+        LRaw = left_poten.read();
+        Rpot = right_poten.read_percent();
+        RRaw = right_poten.read();
 
-    PotFinal = (Lpot+Rpot)/2;
-    // If the Potentiometers are significantly different, default to LPot
-    if (abs(Lpot - Rpot) > THRESH){
-      PotFinal=Lpot;
+        PotFinal = (Lpot+Rpot)/2;
+        // If the Potentiometers are significantly different, default to LPot
+        if (abs(Lpot - Rpot) > THRESH)
+        {
+            PotFinal=Lpot;
+        }
+
+        PotFinal = PotFinal>100? 100 : PotFinal;
+
+        trq_hex = to_trq_hex(PotFinal);
+        msg.buf[1] = trq_hex%256;
+        msg.buf[2] = trq_hex/256;
+
+        int ret = CANbus.write(msg);
+        if (DEBUG)
+        {
+            Serial.println("\nPotentiometer Data:");
+            Serial.printf("Left: [%d, %d\%]\n", LRaw, Lpot);
+            Serial.printf("Right: [%d, %d\%]\n", RRaw, Rpot);
+            Serial.println("CAN Message:");
+            Serial.printf("ret: %d\n", ret);
+            Serial.printf("timeout: %d\n", msg.timeout);
+            Serial.printf("PotFinal: %d\n", PotFinal);
+            Serial.print("0x"); Serial.println(trq_hex, HEX);
+        }
+        if (PERIOD > 50){
+            delay(25);
+        }
     }
-
-    PotFinal = PotFinal>100? 100 : PotFinal;
-
-    trq_hex = to_trq_hex(PotFinal);
-    msg.buf[1] = trq_hex%256;
-    msg.buf[2] = trq_hex/256;
-
-   int ret = CANbus.write(msg);
-    if (DEBUG){
-      Serial.println("\nPotentiometer Data:");
-      Serial.printf("Left: [%d, %d\%]\n", LRaw, Lpot);
-      Serial.printf("Right: [%d, %d\%]\n", RRaw, Rpot);
-      Serial.println("CAN Message:");
-      Serial.printf("ret: %d\n", ret);
-      Serial.printf("timeout: %d\n", msg.timeout);
-      Serial.printf("PotFinal: %d\n", PotFinal);
-      Serial.print("0x"); Serial.println(trq_hex, HEX);
-    }
-    if (PERIOD > 50){
-      delay(25);
-    }
-  }
-  digitalWrite(LED, LOW);
+    digitalWrite(LED, LOW);
 }
