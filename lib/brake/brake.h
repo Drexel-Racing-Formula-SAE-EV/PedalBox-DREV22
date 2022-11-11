@@ -1,16 +1,22 @@
-#ifdef BRAKE_H
+#ifndef BRAKE_H
 #define BRAKE_H
 
+#define BRAKE_THRESHOLD 0
+
 class brake{
+private:
+     int pin_one;
+     int pin_two;
+     int light_pin;
 public:
     /**
      * @brief Construct a new brake object
      * 
-     * @param pin_left sensor pin in from the left brake sensor 
-     * @param pin_right sensor pin in from the right brake sensor
-     * @param light_pin sensor pin out for the brake light
+     * @param pin_one sensor pin in from the left brake sensor 
+     * @param pin_two sensor pin in from the right brake sensor
+     * @param pin_light sensor pin out for the brake light
      */
-    brake(int pin_left, int pin_right, int light_pin);
+    brake(int pin_one, int pin_two, int light_pin);
 
     /**
     * @brief reads the raw value of the brake
@@ -31,6 +37,6 @@ public:
      * 
      */
     void brake_light();
-}
+};
 
 #endif BRAKE_H

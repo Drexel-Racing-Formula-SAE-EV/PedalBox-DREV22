@@ -1,12 +1,12 @@
 #include "poten.h"
-
+#include "brake.h"
 #include <drev_can.h>
 
 #include <Arduino.h>
 
 #define LEFT_POTEN_PIN A1
 #define RIGHT_POTEN_PIN A2
-#define BRAKE_LIGHT_PIN A13
+#define BRAKE_LIGHT_PIN A14
 #define BRAKE_PIN_ONE A0
 #define BRAKE_PIN_TWO A3 
 
@@ -31,9 +31,9 @@ void setup() {
     Serial.begin(9600);
     pinMode(LEFT_POTEN_PIN, INPUT);
     pinMode(RIGHT_POTEN_PIN, INPUT);
-    pinmode(BRAKE_LIGHT_PIN, OUTPUT);
-    pinmode(BRAKE_PIN_ONE, INPUT);
-    pinmode(BRAKE_PIN_TWO, INPUT);
+    pinMode(BRAKE_LIGHT_PIN, OUTPUT);
+    pinMode(BRAKE_PIN_ONE, INPUT);
+    pinMode(BRAKE_PIN_TWO, INPUT);
 }
 
 void loop() {
