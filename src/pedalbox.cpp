@@ -63,13 +63,7 @@ void check_implausability(int L, int R)
             // Prolonged Implausibililty detected, stop car
             last_write = millis();
             while(1) {
-                // Send Zero Torque command forever
-                //if ( (millis() - last_write) > PERIOD) {
-                //    last_write = millis();
-                //    msg.buf[0] = 0x00;
-                //    msg.buf[1] = 0x00;
-                //    CANbus.write(msg);
-                //}
+                //Set RFE Low
             }
         }
     } else {
