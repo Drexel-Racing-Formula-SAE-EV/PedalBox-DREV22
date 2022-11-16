@@ -24,8 +24,10 @@
 #define RPOT_MIN    545     // Right Potentiometer Lower Bound
 #define RPOT_MAX    1023    // Right Potentiometer Upper Bound
 
-#define PERIOD 250
-#define THRESH 5
+#define PERIOD 20
+#define IMP_PERIOD  100     // Period of implausibility defined in T4.2.5 FSAE 2023 V2
+#define NSAMPLES    ((IMP_PERIOD / PERIOD) + 1)
+#define THRESH 10   // T4.2.4 FSAE 2023 V2
 
 FlexCAN CANbus(500000);
 static CAN_message_t msg;
@@ -51,6 +53,29 @@ uint16_t to_trq_hex(short percent){
     return map(percent, 0, 100, 0x0000, 0x5555);
 }
 
+void check_implausability(int L, int R)
+{
+    static int counts;
+    // Count number of reoccuring instances of torque values differing more than THRESH %
+    if (abs(L-R) > THRESH){
+        counts++;
+        if (counts >= NSAMPLES){
+            // Prolonged Implausibililty detected, stop car
+            last_write = millis();
+            while(1) {
+                // Send Zero Torque command forever
+                //if ( (millis() - last_write) > PERIOD) {
+                //    last_write = millis();
+                //    msg.buf[0] = 0x00;
+                //    msg.buf[1] = 0x00;
+                //    CANbus.write(msg);
+                //}
+            }
+        }
+    } else {
+        counts = 0;
+    }
+}
 // -------------------------------------------------------------
 void setup(void)
 {
@@ -82,6 +107,7 @@ void loop(void)
         RRaw = right_poten.read();
 
         PotFinal = (Lpot+Rpot)/2;
+        check_implausability(Lpot, Rpot);
         // If the Potentiometers are significantly different, default to LPot
         if (abs(Lpot - Rpot) > THRESH)
         {
